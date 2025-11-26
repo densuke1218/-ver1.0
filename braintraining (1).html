@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>脳トレパーティー</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    body {
+      margin: 0;
+      background: #0f172a;
+      color: #f9fafb;
+      display: flex;
+      justify-content: center;
+    }
+    .container {
+      max-width: 900px;
+      width: 100%;
+      padding: 16px;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 12px;
+    }
+    header h1 {
+      margin: 0 0 4px;
+      font-size: 1.8rem;
+    }
+    header p {
+      margin: 0;
+      font-size: 0.9rem;
+      color: #cbd5f5;
+    }
+    .top-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      margin-bottom: 12px;
+    }
+    button {
+      border: none;
+      border-radius: 999px;
+      padding: 8px 14px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      background: #1d4ed8;
+      color: #f9fafb;
+      transition: transform 0.07s ease, box-shadow 0.07s ease, background 0.15s;
+      box-shadow: 0 2px 4px rgba(15,23,42,0.4);
+    }
+    button:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(15,23,42,0.6);
+      background: #2563eb;
+    }
+    button:active:not(:disabled) {
+      transform: translateY(0);
+      box-shadow: 0 1px 2px rgba(15,23,42,0.8);
+    }
+    button:disabled {
+      opacity: 0.6;
+      cursor: default;
+      box-shadow: none;
+    }
+
+    main {
+      background: rgba(15,23,42,0.85);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      border: 1px solid rgba(148,163,184,0.3);
+    }
+    .screen {
+      display: none;
+    }
+    .screen.active {
+      display: block;
+    }
+    h2 {
+      margin-top: 0;
+      font-size: 1.4rem;
+    }
+    h3 {
+      margin-top: 1.2rem;
+      font-size: 1.1rem;
+    }
+    .game-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      margin-top: 8px;
+    }
+    .game-card {
+      background: #020617;
+      border-radius: 14px;
+      padding: 12px;
+      border: 1px solid rgba(148,163,184,0.3);
+    }
+    .game-card h3 {
+      margin-top: 0;
+    }
+    .tag {
+      display: inline-block;
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(59,130,246,0.15);
+      color: #bfdbfe;
+      margin-bottom: 4px;
+    }
+    .muted {
+      color: #94a3b8;
+      font-size: 0.9rem;
+    }
+    .home-btn {
+      margin-top: 10px;
+      background: #0f766e;
+    }
+    .ranking-list {
+      padding-left: 20px;
+      font-size: 0.9rem;
+    }
+    .ranking-list li {
+      margin-bottom: 2px;
+    }
+    .status-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.9rem;
+      margin-bottom: 6px;
+    }
+    input[type="number"],
+    input[type="text"] {
+      width: 100%;
+      padding: 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.7);
+      background: #020617;
+      color: #e5e7eb;
+      font-size: 0.95rem;
+      box-sizing: border-box;
+      margin: 6px 0;
+    }
+    input:disabled {
+      opacity: 0.6;
+    }
+    .button-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 4px;
+      flex-wrap: wrap;
+    }
+    .emphasis {
+      font-weight: 600;
+      color: #fbbf24;
+    }
+    /* Reaction game */
+    #reaction-box {
+      text-align: center;
+      padding: 16px;
+      border-radius: 12px;
+      background: #111827;
+      transition: background 0.2s;
+    }
+    #reaction-box.go {
+      background: #15803d;
+    }
+    #reaction-message {
+      margin-bottom: 8px;
+    }
+    #reaction-result {
+      margin-top: 8px;
+      font-size: 1rem;
+    }
+    /* Memory game */
+    #memory-board {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin: 8px 0 10px;
+    }
+    .memory-tile {
+      height: 70px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      opacity: 0.8;
+      transition: transform 0.08s, opacity 0.08s, box-shadow 0.08s;
+    }
+    .memory-tile.active {
+      transform: scale(1.05);
+      opacity: 1;
+      box-shadow: 0 0 12px rgba(250,250,250,0.7);
+    }
+    .memory-tile[data-index="0"] {
+      background: #ef4444;
+    }
+    .memory-tile[data-index="1"] {
+      background: #22c55e;
+    }
+    .memory-tile[data-index="2"] {
+      background: #3b82f6;
+    }
+    .memory-tile[data-index="3"] {
+      background: #eab308;
+    }
+    #memory-level {
+      font-weight: 600;
+    }
+    @media (max-width: 600px) {
+      main {
+        padding: 12px;
+      }
+      header h1 {
+        font-size: 1.4rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>脳トレパーティー 🧠🎉</h1>
+      <p>反射・計算・記憶力でハイスコアをねらえ！ ランキングで友達と勝負しよう。</p>
+    </header>
+
+    <nav class="top-nav">
+      <button data-target="screen-home">🏠 ホーム</button>
+      <button data-target="screen-reaction">⚡ 反射神経</button>
+      <button data-target="screen-calc">➗ 計算チャレンジ</button>
+      <button data-target="screen-memory">🧩 記憶力</button>
+    </nav>
+
+    <main>
+      <!-- ホーム画面 -->
+      <section id="screen-home" class="screen active">
+        <h2>ゲームをえらんでスタート！</h2>
+        <p class="muted">
+          それぞれのゲームの結果はブラウザ内に保存されます。<br />
+          クラス全員で同じ端末を使えば、簡易ランキングとして盛り上がれます。
+        </p>
+        <div class="game-grid">
+          <div class="game-card">
+            <span class="tag">反射</span>
+            <h3>⚡ 反射神経ゲーム</h3>
+            <p class="muted">画面が「今だ！」になった瞬間にクリック。<span class="emphasis">最速反応時間</span>をきそおう。</p>
+            <button data-target="screen-reaction">このゲームで遊ぶ</button>
+          </div>
+          <div class="game-card">
+            <span class="tag">計算</span>
+            <h3>➗ 計算チャレンジ</h3>
+            <p class="muted">30秒のあいだに、できるだけ多くの計算問題を解こう。集中力とスピードがカギ！</p>
+            <button data-target="screen-calc">このゲームで遊ぶ</button>
+          </div>
+          <div class="game-card">
+            <span class="tag">記憶</span>
+            <h3>🧩 記憶力ゲーム</h3>
+            <p class="muted">光るマスの順番をおぼえて、同じようにタップ。何レベルまでいけるかな？</p>
+            <button data-target="screen-memory">このゲームで遊ぶ</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 反射神経ゲーム -->
+      <section id="screen-reaction" class="screen">
+        <h2>⚡ 反射神経ゲーム</h2>
+        <p class="muted">
+          「スタート」を押すと、少ししてから画面が<span class="emphasis">緑色</span>になります。<br />
+          緑になったら、できるだけ早く「今だ！クリック！」ボタンを押そう。<br />
+          フライングするとやり直し！
+        </p>
+
+        <div class="game-card" id="reaction-box">
+          <p id="reaction-message">準備OK？「スタート」を押してね。</p>
+          <button id="reaction-start-btn">スタート</button>
+          <button id="reaction-click-btn" disabled>今だ！クリック！</button>
+          <p id="reaction-result"></p>
+        </div>
+
+        <button class="home-btn" data-target="screen-home">🏠 ホームへ戻る</button>
+
+        <h3>⚡ 反射神経ランキング（小さいほどスゴイ）</h3>
+        <p id="no-ranking-reaction" class="muted">まだ記録がありません。目指せ神反応！</p>
+        <ol id="ranking-reaction" class="ranking-list"></ol>
+      </section>
+
+      <!-- 計算チャレンジ -->
+      <section id="screen-calc" class="screen">
+        <h2>➗ 計算チャレンジ（30秒）</h2>
+        <p class="muted">
+          「スタート」を押すと30秒のカウントダウンが始まります。<br />
+          出てくるたし算・ひき算をどんどん解いて、<span class="emphasis">正解数</span>で勝負しよう！
+        </p>
+
+        <div class="game-card">
+          <div class="status-row">
+            <span>残り時間：<span id="calc-time">30</span> 秒</span>
+            <span>正解数：<span id="calc-score">0</span></span>
+          </div>
+
+          <div id="calc-question-area" style="font-size:1.3rem; margin: 8px 0;">
+            <span id="calc-question">「スタート」を押してゲーム開始！</span>
+          </div>
+
+          <input id="calc-answer" type="number" placeholder="ここに答えを入力（EnterでもOK）" disabled />
+          <div class="button-row">
+            <button id="calc-start-btn">スタート</button>
+            <button id="calc-submit-btn" disabled>回答</button>
+          </div>
+          <p id="calc-message" class="muted"></p>
+        </div>
+
+        <button class="home-btn" data-target="screen-home">🏠 ホームへ戻る</button>
+
+        <h3>➗ 計算ランキング（多いほどスゴイ）</h3>
+        <p id="no-ranking-calc" class="muted">まだ記録がありません。まずは1問目から！</p>
+        <ol id="ranking-calc" class="ranking-list"></ol>
+      </section>
+
+      <!-- 記憶力ゲーム -->
+      <section id="screen-memory" class="screen">
+        <h2>🧩 記憶力ゲーム</h2>
+        <p class="muted">
+          「スタート」を押すと、色のマスが順番に光ります。<br />
+          光った順番どおりにマスをタップしてね。<br />
+          1回でもまちがえるとゲームオーバー。どこまでレベルを伸ばせるかな？
+        </p>
+
+        <div class="game-card">
+          <div id="memory-board">
+            <button class="memory-tile" data-index="0"></button>
+            <button class="memory-tile" data-index="1"></button>
+            <button class="memory-tile" data-index="2"></button>
+            <button class="memory-tile" data-index="3"></button>
+          </div>
+          <p>到達レベル：<span id="memory-level">0</span></p>
+          <button id="memory-start-btn">スタート</button>
+          <p id="memory-message" class="muted">まずは「スタート」を押してね。</p>
+        </div>
+
+        <button class="home-btn" data-target="screen-home">🏠 ホームへ戻る</button>
+
+        <h3>🧩 記憶力ランキング（レベルが高いほどスゴイ）</h3>
+        <p id="no-ranking-memory" class="muted">まだ記録がありません。頭のストレッチからスタート！</p>
+        <ol id="ranking-memory" class="ranking-list"></ol>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    // ===== 画面切り替え =====
+    const screens = document.querySelectorAll(".screen");
+    function showScreen(id) {
+      screens.forEach((s) => s.classList.remove("active"));
+      const target = document.getElementById(id);
+      if (target) target.classList.add("active");
+    }
+    document.querySelectorAll("[data-target]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const id = btn.getAttribute("data-target");
+        showScreen(id);
+      });
+    });
+
+    // ===== ランキング管理 =====
+    const RANKING_KEY = "brainTrainerRankings_v1";
+    let rankings = {};
+
+    function loadRankings() {
+      try {
+        const saved = localStorage.getItem(RANKING_KEY);
+        if (saved) {
+          rankings = JSON.parse(saved);
+        }
+      } catch (e) {
+        console.warn("ランキング読み込み失敗:", e);
+        rankings = {};
+      }
+    }
+
+    function saveRankings() {
+      try {
+        localStorage.setItem(RANKING_KEY, JSON.stringify(rankings));
+      } catch (e) {
+        console.warn("ランキング保存失敗:", e);
+      }
+    }
+
+    function addScore(gameId, name, score, higherIsBetter) {
+      if (!rankings[gameId]) rankings[gameId] = [];
+      rankings[gameId].push({ name, score });
+
+      rankings[gameId].sort((a, b) => {
+        return higherIsBetter ? b.score - a.score : a.score - b.score;
+      });
+
+      rankings[gameId] = rankings[gameId].slice(0, 10);
+      saveRankings();
+      renderRanking(gameId);
+    }
+
+    function renderRanking(gameId) {
+      const list = document.getElementById(`ranking-${gameId}`);
+      const noMsg = document.getElementById(`no-ranking-${gameId}`);
+      if (!list) return;
+      list.innerHTML = "";
+
+      const data = rankings[gameId] || [];
+      if (!data.length) {
+        if (noMsg) noMsg.style.display = "block";
+        return;
+      }
+      if (noMsg) noMsg.style.display = "none";
+
+      data.forEach((entry, index) => {
+        const li = document.createElement("li");
+        let medal = "";
+        if (index === 0) medal = "👑 ";
+        else if (index === 1) medal = "🥈 ";
+        else if (index === 2) medal = "🥉 ";
+
+        let unit = "";
+        if (gameId === "reaction") unit = " ms";
+        if (gameId === "calc") unit = " 問";
+        if (gameId === "memory") unit = " レベル";
+
+        li.textContent = `${medal}${index + 1}位: ${entry.name} - ${entry.score}${unit}`;
+        list.appendChild(li);
+      });
+    }
+
+    function askNameAndSave(gameId, score, higherIsBetter) {
+      let comment = "";
+      if (gameId === "reaction") {
+        if (score < 150) comment = "神速！人間離れした反射神経！";
+        else if (score < 250) comment = "かなり速い！ナイス集中！";
+        else comment = "まずはここから。もう一回やってみよう！";
+      } else if (gameId === "calc") {
+        if (score >= 20) comment = "天才級の計算力！";
+        else if (score >= 10) comment = "いいペース！その調子！";
+        else comment = "ウォーミングアップはここから！";
+      } else if (gameId === "memory") {
+        if (score >= 10) comment = "すごい記憶力！";
+        else if (score >= 5) comment = "集中できてる！";
+        else comment = "続ければもっと伸びるよ！";
+      }
+      if (comment) {
+        alert(comment);
+      }
+
+      const name = prompt("ランキングに登録する名前を入力してね（キャンセルでスキップ）");
+      if (name && name.trim()) {
+        addScore(gameId, name.trim(), score, higherIsBetter);
+        alert("ランキングに登録したよ！");
+      }
+    }
+
+    // ===== 反射神経ゲーム =====
+    (function setupReactionGame() {
+      const box = document.getElementById("reaction-box");
+      const message = document.getElementById("reaction-message");
+      const result = document.getElementById("reaction-result");
+      const startBtn = document.getElementById("reaction-start-btn");
+      const clickBtn = document.getElementById("reaction-click-btn");
+
+      let state = "idle"; // idle | waiting | go
+      let timeoutId = null;
+      let startTime = 0;
+
+      function resetReaction() {
+        state = "idle";
+        startBtn.disabled = false;
+        clickBtn.disabled = true;
+        box.classList.remove("go");
+        if (timeoutId) clearTimeout(timeoutId);
+      }
+
+      startBtn.addEventListener("click", () => {
+        resetReaction();
+        state = "waiting";
+        startBtn.disabled = true;
+        clickBtn.disabled = false;
+        result.textContent = "";
+        message.textContent = "色が変わるまでじっと待って… フライング禁止！";
+
+        const delay = 1500 + Math.random() * 2000; // 1.5〜3.5秒
+        timeoutId = setTimeout(() => {
+          state = "go";
+          box.classList.add("go");
+          message.textContent = "今だ！ボタンをクリック！";
+          startTime = performance.now();
+        }, delay);
+      });
+
+      clickBtn.addEventListener("click", () => {
+        if (state === "waiting") {
+          message.textContent = "フライング！残念… もう一回チャレンジしよう。";
+          result.textContent = "";
+          resetReaction();
+          return;
+        }
+        if (state === "go") {
+          const endTime = performance.now();
+          const diff = Math.round(endTime - startTime);
+          result.textContent = `反応時間：${diff} ms`;
+          message.textContent = "記録を更新できるかな？ もう一回「スタート」してみよう。";
+          askNameAndSave("reaction", diff, false);
+          resetReaction();
+        }
+      });
+    })();
+
+    // ===== 計算チャレンジ =====
+    (function setupCalcGame() {
+      const timeEl = document.getElementById("calc-time");
+      const scoreEl = document.getElementById("calc-score");
+      const questionEl = document.getElementById("calc-question");
+      const answerInput = document.getElementById("calc-answer");
+      const startBtn = document.getElementById("calc-start-btn");
+      const submitBtn = document.getElementById("calc-submit-btn");
+      const msg = document.getElementById("calc-message");
+
+      let remaining = 30;
+      let score = 0;
+      let currentAnswer = null;
+      let timerId = null;
+      let playing = false;
+
+      function updateDisplay() {
+        timeEl.textContent = remaining;
+        scoreEl.textContent = score;
+      }
+
+      function makeQuestion() {
+        const a = Math.floor(Math.random() * 20) + 1; // 1〜20
+        const b = Math.floor(Math.random() * 20) + 1;
+        const usePlus = Math.random() < 0.5;
+        let text, ans;
+        if (usePlus) {
+          text = `${a} + ${b} = ?`;
+          ans = a + b;
+        } else {
+          const bigger = Math.max(a, b);
+          const smaller = Math.min(a, b);
+          text = `${bigger} - ${smaller} = ?`;
+          ans = bigger - smaller;
+        }
+        questionEl.textContent = text;
+        currentAnswer = ans;
+      }
+
+      function endGame() {
+        playing = false;
+        clearInterval(timerId);
+        timerId = null;
+        answerInput.disabled = true;
+        submitBtn.disabled = true;
+        startBtn.disabled = false;
+        msg.textContent = `終了！正解数は ${score} 問でした。`;
+        askNameAndSave("calc", score, true);
+      }
+
+      function handleAnswer() {
+        if (!playing) return;
+        const val = parseInt(answerInput.value, 10);
+        if (Number.isNaN(val)) {
+          msg.textContent = "数字で答えを入力してね。";
+          return;
+        }
+        if (val === currentAnswer) {
+          score++;
+          msg.textContent = "正解！いいペース！";
+        } else {
+          msg.textContent = `おしい… 正解は ${currentAnswer} でした。`;
+        }
+        answerInput.value = "";
+        updateDisplay();
+        makeQuestion();
+      }
+
+      startBtn.addEventListener("click", () => {
+        playing = true;
+        remaining = 30;
+        score = 0;
+        updateDisplay();
+        makeQuestion();
+        answerInput.disabled = false;
+        submitBtn.disabled = false;
+        startBtn.disabled = true;
+        msg.textContent = "集中していこう！";
+        answerInput.value = "";
+        answerInput.focus();
+
+        if (timerId) clearInterval(timerId);
+        timerId = setInterval(() => {
+          remaining--;
+          updateDisplay();
+          if (remaining <= 0) {
+            endGame();
+          }
+        }, 1000);
+      });
+
+      submitBtn.addEventListener("click", handleAnswer);
+      answerInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          handleAnswer();
+        }
+      });
+    })();
+
+    // ===== 記憶力ゲーム =====
+    (function setupMemoryGame() {
+      const tiles = Array.from(document.querySelectorAll(".memory-tile"));
+      const levelEl = document.getElementById("memory-level");
+      const startBtn = document.getElementById("memory-start-btn");
+      const msg = document.getElementById("memory-message");
+
+      let sequence = [];
+      let userIndex = 0;
+      let level = 0;
+      let busyShowing = false;
+      let playing = false;
+      let showTimers = [];
+
+      function clearTimers() {
+        showTimers.forEach((id) => clearTimeout(id));
+        showTimers = [];
+      }
+
+      function setLevelDisplay() {
+        levelEl.textContent = level;
+      }
+
+      function flashTile(index, delay) {
+        const tile = tiles[index];
+        const t1 = setTimeout(() => {
+          tile.classList.add("active");
+        }, delay);
+        const t2 = setTimeout(() => {
+          tile.classList.remove("active");
+        }, delay + 400);
+        showTimers.push(t1, t2);
+      }
+
+      function showSequence() {
+        busyShowing = true;
+        msg.textContent = "よく見て覚えてね…";
+        clearTimers();
+        sequence.forEach((idx, i) => {
+          flashTile(idx, i * 600);
+        });
+        const total = sequence.length * 600;
+        const endTimer = setTimeout(() => {
+          busyShowing = false;
+          msg.textContent = "今度は同じ順番でタップしてね！";
+        }, total + 500);
+        showTimers.push(endTimer);
+      }
+
+      function nextRound() {
+        level++;
+        setLevelDisplay();
+        userIndex = 0;
+        sequence.push(Math.floor(Math.random() * 4));
+        showSequence();
+      }
+
+      function gameOver() {
+        playing = false;
+        clearTimers();
+        tiles.forEach((t) => t.classList.remove("active"));
+        const score = level;
+        msg.textContent = `ゲームオーバー… 到達レベルは ${score} でした。`;
+        startBtn.textContent = "もう一回！";
+        askNameAndSave("memory", score, true);
+      }
+
+      function startGame() {
+        sequence = [];
+        level = 0;
+        userIndex = 0;
+        playing = true;
+        busyShowing = false;
+        setLevelDisplay();
+        msg.textContent = "さあ、スタート！";
+        startBtn.textContent = "リスタート";
+        nextRound();
+      }
+
+      startBtn.addEventListener("click", () => {
+        if (busyShowing) return;
+        startGame();
+      });
+
+      tiles.forEach((tile) => {
+        tile.addEventListener("click", () => {
+          if (!playing || busyShowing) return;
+          const idx = parseInt(tile.getAttribute("data-index"), 10);
+          const expected = sequence[userIndex];
+          if (idx === expected) {
+            tile.classList.add("active");
+            setTimeout(() => tile.classList.remove("active"), 200);
+            userIndex++;
+            if (userIndex >= sequence.length) {
+              msg.textContent = "すごい！次のレベルへ！";
+              setTimeout(() => {
+                nextRound();
+              }, 700);
+            }
+          } else {
+            gameOver();
+          }
+        });
+      });
+    })();
+
+    // 初期化：ランキング読み込み＆描画
+    loadRankings();
+    ["reaction", "calc", "memory"].forEach(renderRanking);
+  </script>
+</body>
+</html>
